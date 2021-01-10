@@ -1,0 +1,7 @@
+mysql_moodle_user: moodleuser
+mysql_moodle_password: moodlepassword
+mysql_moodle_dbname: moodle
+moodle_adminuser: admin
+moodle_adminpassword: password
+moodle_adminmail: admin@localhost.local
+moodle_lang: de

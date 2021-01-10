@@ -1,0 +1,8 @@
+- name: Install moodle
+  hosts: moodle
+  remote_user: root
+  roles:
+    - role_base
+    - role_nginx
+    - role_mysql
+    - role_moodle

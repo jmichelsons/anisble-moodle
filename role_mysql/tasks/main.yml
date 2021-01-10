@@ -1,0 +1,8 @@
+- name: Install MySQL
+  apt:
+    name: mysql-server-8.0
+
+- name: Ensure MySQL is started
+  service:
+    name: mysql
+    state: started
