@@ -1,8 +1,8 @@
-- name: Install MySQL
+- name: Install MariaDB
   apt:
-    name: mysql-server-8.0
+    name: mariadb-server
 
-- name: Ensure MySQL is started
+- name: Ensure MariaDB is started
   service:
     name: mysql
     state: started

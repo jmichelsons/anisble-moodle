@@ -12,10 +12,11 @@
       - php-intl
       - php-fpm
 
-- name: Start PHP-FPM
+- name: Ensure PHP-FPM is started when Ubuntu
   sysvinit:
     name: php7.4-fpm
     state: started
+  when: ansible_distribution == 'Ubuntu'
 
 - name: Copy database init script
   template:
@@ -46,6 +47,20 @@
     src: nginx_config
     dest: /etc/nginx/sites-available/moodle
 
+- name: Replace PHP-FPM Socket when Debian
+  replace: 
+    path: /etc/nginx/sites-available/moodle
+    regexp: '(.*)PHP_FPM_SOCKET(.*)?$'
+    replace: '\1php7.3-fpm.sock\2'
+  when: ansible_distribution == 'Debian'
+
+- name: Replace PHP-FPM Socket when Ubuntu
+  replace:
+    path: /etc/nginx/sites-available/moodle
+    regexp: '(.*)PHP_FPM_SOCKET(.*)?$'
+    replace: '\1php7.4-fpm.sock\2'
+  when: ansible_distribution == 'Ubuntu'
+
 - name: Create a symbolic link
   file:
     src: /etc/nginx/sites-available/moodle
@@ -65,7 +80,7 @@
   command: /usr/bin/php /var/www/moodle/admin/cli/install.php
     --wwwroot=http://{{ vhost_name }}
     --dataroot=/var/www/moodledata
-    --dbtype=mysqli
+    --dbtype=mariadb
     --dbhost=localhost
     --dbname={{ mysql_moodle_dbname }}
     --dbuser={{ mysql_moodle_user }}
