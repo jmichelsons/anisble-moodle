@@ -1,0 +1,6 @@
+- name: Install moodle docker
+  hosts: moodle_docker
+  remote_user: root
+  roles:
+    - role_docker/base
+    - role_docker/moodle

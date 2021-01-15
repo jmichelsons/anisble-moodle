@@ -1,0 +1,23 @@
+- name: Copy docker related files
+  unarchive:
+    src: docker_moodle_ansible.tar.gz
+    dest: /root
+    mode: 0755
+
+- name: Copy database init script
+  template:
+    src: init_database.sql
+    dest: /root/docker/database
+
+- name: Copy nginx configuration
+  template:
+    src: nginx_config
+    dest: /root/docker/moodle/site.conf
+
+- name: Copy moodle files
+  unarchive:
+    src: ../../moodle.tgz
+    dest: /root/docker/app
+    owner: www-data
+    group: www-data
+    mode: 0755

@@ -1,4 +1,4 @@
-- name: Install moodle
+- name: Install moodle plain
   hosts: moodle
   remote_user: root
   roles:
