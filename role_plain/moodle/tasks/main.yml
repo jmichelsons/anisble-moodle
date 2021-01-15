@@ -1,0 +1,98 @@
+- name: Install prerequisites for moodle
+  apt:
+    name:
+      - php-mysql
+      - php-curl
+      - php-zip
+      - php-xmlrpc
+      - php-xml
+      - php-mbstring
+      - php-soap
+      - php-gd
+      - php-intl
+      - php-fpm
+
+- name: Ensure PHP-FPM is started when Ubuntu
+  sysvinit:
+    name: php7.4-fpm
+    state: started
+  when: ansible_distribution == 'Ubuntu'
+
+- name: Copy database init script
+  template:
+    src: init_database.sql
+    dest: /root/
+
+- name: Create database, user and access rights
+  shell: mysql < /root/init_database.sql
+
+- name: Copy moodle files
+  unarchive:
+    src: ../../moodle.tgz
+    dest: /var/www/
+    owner: www-data
+    group: www-data
+    mode: 0755
+
+- name: Create moodle data directory
+  file:
+    path: /var/www/moodledata
+    state: directory
+    owner: www-data
+    group: www-data
+    mode: '0755'
+
+- name: Copy nginx configuration
+  template:
+    src: nginx_config
+    dest: /etc/nginx/sites-available/moodle
+
+- name: Replace PHP-FPM Socket when Debian
+  replace: 
+    path: /etc/nginx/sites-available/moodle
+    regexp: '(.*)PHP_FPM_SOCKET(.*)?$'
+    replace: '\1php7.3-fpm.sock\2'
+  when: ansible_distribution == 'Debian'
+
+- name: Replace PHP-FPM Socket when Ubuntu
+  replace:
+    path: /etc/nginx/sites-available/moodle
+    regexp: '(.*)PHP_FPM_SOCKET(.*)?$'
+    replace: '\1php7.4-fpm.sock\2'
+  when: ansible_distribution == 'Ubuntu'
+
+- name: Create a symbolic link
+  file:
+    src: /etc/nginx/sites-available/moodle
+    dest: /etc/nginx/sites-enabled/moodle
+    state: link
+  notify:
+    - Restart nginx
+
+- name: Check for existing config.php
+  stat:
+    path: /var/www/moodle/config.php
+  register: moodle_config
+
+- name: Execute installation script
+  become: yes
+  become_user: www-data
+  command: /usr/bin/php /var/www/moodle/admin/cli/install.php
+    --wwwroot=http://{{ vhost_name }}
+    --dataroot=/var/www/moodledata
+    --dbtype=mariadb
+    --dbhost=localhost
+    --dbname={{ mysql_moodle_dbname }}
+    --dbuser={{ mysql_moodle_user }}
+    --dbpass={{ mysql_moodle_password }}
+    --dbsocket=/var/run/mysqld/mysqld.sock
+    --fullname=Moodle
+    --shortname=Moodle
+    --summary=Moodle
+    --adminuser={{ moodle_adminuser }}
+    --adminpass={{ moodle_adminpassword }}
+    --adminemail={{ moodle_adminmail }}
+    --lang={{ moodle_lang }}
+    --non-interactive
+    --agree-license
+  when: not moodle_config.stat.exists

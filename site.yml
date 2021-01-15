@@ -2,7 +2,7 @@
   hosts: moodle
   remote_user: root
   roles:
-    - role_base
-    - role_nginx
-    - role_mysql
-    - role_moodle
+    - role_plain/base
+    - role_plain/nginx
+    - role_plain/mysql
+    - role_plain/moodle
