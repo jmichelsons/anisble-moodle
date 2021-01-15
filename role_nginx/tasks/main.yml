@@ -1,9 +1,0 @@
-- name: Install NGINX Webserver
-  apt:
-    name: nginx
-    state: present
-
-- name: Ensure NGINX is started
-  service:
-    name: nginx
-    state: started

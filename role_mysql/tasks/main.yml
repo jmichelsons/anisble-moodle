@@ -1,8 +1,0 @@
-- name: Install MariaDB
-  apt:
-    name: mariadb-server
-
-- name: Ensure MariaDB is started
-  service:
-    name: mysql
-    state: started
