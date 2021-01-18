@@ -7,12 +7,17 @@
 - name: Copy database init script
   template:
     src: init_database.sql
-    dest: /root/docker/database
+    dest: /root/docker/config/database
 
 - name: Copy nginx configuration
   template:
     src: nginx_config
-    dest: /root/docker/moodle/site.conf
+    dest: /root/docker/config/nginx/conf.d/site.conf
+
+- name: Start Docker containers
+  shell: docker-compose up -d
+  args:
+    chdir: docker/
 
 - name: Copy moodle files
   unarchive:
@@ -21,3 +26,31 @@
     owner: www-data
     group: www-data
     mode: 0755
+
+- name: Create database, user and access rights
+  shell: docker exec -i docker_database_1 /bin/bash -c 'exec mysql -uroot' < docker/config/database/init_database.sql
+
+- name: Check for existing config.php
+  stat:
+    path: /root/docker/app/moodle/config.php
+  register: moodle_config
+
+- name: Execute installation script
+  command: docker exec docker_php-fpm_1 /bin/bash -c 'sudo -u www-data php /app/moodle/admin/cli/install.php
+    --wwwroot=http://{{ vhost_name }}
+    --dataroot=/app/moodledata
+    --dbtype=mariadb
+    --dbhost=database
+    --dbname={{ mysql_moodle_dbname }}
+    --dbuser={{ mysql_moodle_user }}
+    --dbpass={{ mysql_moodle_password }}
+    --fullname=Moodle
+    --shortname=Moodle
+    --summary=Moodle
+    --adminuser={{ moodle_adminuser }}
+    --adminpass={{ moodle_adminpassword }}
+    --adminemail={{ moodle_adminmail }}
+    --lang={{ moodle_lang }}
+    --non-interactive
+    --agree-license'
+  when: not moodle_config.stat.exists
