@@ -1,6 +1,6 @@
 - name: Copy docker related files
   unarchive:
-    src: docker_moodle_ansible.tar.gz
+    src: docker_moodle_ansible_{{ ansible_distribution }}.tar.gz
     dest: /root
     mode: 0755
 
